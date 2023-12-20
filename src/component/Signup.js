@@ -1,29 +1,28 @@
 import React from 'react'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
-import axios, { all } from 'axios'
+import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify';
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate, Link } from 'react-router-dom';
+import 'react-toastify/dist/ReactToastify.css';
 const Signup = () => {
     const [alluser, setalluser] = useState([])
+    const [message, setmessage] = useState("")
     const navigate = useNavigate()
 
     useEffect(() => {
-        axios.get(" http://localhost:3424/users")
-        .then((res)=>{
-          setalluser(res.data)
-          console.log(alluser);
-        }).catch((err)=>{
-          console.log(err);
-        })
+        // axios.get("http://localhost:6000/linkedin/signup")
+        // .then((res)=>{
+        //   setalluser(res.data)
+        //   console.log(alluser);
+        // }).catch((err)=>{
+        //   console.log(err);
+        // })
       
         
       }, [])
-      const login = () =>{
-         navigate("/login")
-      }
+    
     const formik = useFormik({
         initialValues:{
             firstname: "",
@@ -41,56 +40,55 @@ const Signup = () => {
            }),
            onSubmit: (value) => {
                 console.log(value);
-                let exist = alluser.find((el)=> el.email == value.email);
-                if (exist) {
-                 toast.error("user already exist")
-                }else{
-                    axios.post("http://localhost:3424/users", value)
-                    .then((res)=>{
-                     console.log(res);
-                     toast.success("signup successful")
-                     navigate('/login')
-                    }).catch((err)=>{
-                     console.log(err);
-                     toast.error("signup failed")
-                    })
-                }
+                try {
+                  axios.post("http://localhost:5000/linkedin/signup",value)
+                  .then((res)=>{
+                   toast.success(res.data.message)
+                   navigate('/login')
+                  }).catch((err)=>{
+                   toast.error(err.message)
+                  })
+                } catch (error) {
+                  console.log(error);
+                  toast.error(error)
+                }   
            }
     })
-    console.log(formik.errors);
   return (
     <>
       <div>
-          <form className='mx-auto w-50 shadow p-5' onSubmit={formik.handleSubmit} action="" >
-            <h1 className='text-center text-pimary'>Signup</h1>
+          <form className='mx-auto form shadow p-5 mt-5'  onSubmit={formik.handleSubmit} action="" >
+            <h1 className='text-center fw-medium fs-5'>Sign Up</h1>
+            <p className='fs-6 text-secondary text-center'>Create an account to continue</p>
             <div className='m-3'>
-                <label htmlFor="firstname">First Name</label>
-                <input name='firstname' onChange={formik.handleChange} className='form-control ' type="text" />
-                <small className='text-danger'>{formik.errors.firstname}</small>
+                <label className='fw-medium fs-6' htmlFor="firstname">Firstname</label>
+                <input name='firstname' onChange={formik.handleChange} onBlur={formik.handleBlur} className='form-control ' type="text" />
+                {formik.touched.firstname && formik.errors.firstname? <small className='text-danger'>{formik.errors.firstname}</small> : "" }
+                
             </div>
             <div className='m-3'>
-                <label htmlFor="lastname">Last Name</label>
-                <input name='lastname' onChange={formik.handleChange} className='form-control' type="text" />
-                <small className='text-danger'>{formik.errors.lastname}</small>
+                <label className='fw-medium fs-6' htmlFor="lastname">Lastname</label>
+                <input name='lastname' onChange={formik.handleChange} onBlur={formik.handleBlur} className='form-control' type="text" />
+                {formik.touched.lastname && formik.errors.lastname? <small className='text-danger'>{formik.errors.lastname}</small> : "" }
             </div>
             <div className='m-3'>
-                <label htmlFor="email">Email</label>
-                <input name='email' onChange={formik.handleChange} className='form-control' type="email" />  
-                <small className='text-danger'>{formik.errors.email}</small>
+                <label className='fw-medium fs-6' htmlFor="email">Email</label>
+                <input name='email' onChange={formik.handleChange} onBlur={formik.handleBlur} className='form-control' type="email" />  
+                {formik.touched.email && formik.errors.email? <small className='text-danger'>{formik.errors.email}</small> : "" }
             </div>
             <div className='m-3'>
-                <label htmlFor="phone">Phone number</label>
-                <input name='phonenumber' onChange={formik.handleChange} className='form-control' type="number" />  
-                <small className='text-danger'>{formik.errors.phonenumber}</small>
+                <label className='fw-medium fs-6' htmlFor="phone">Phonenumber</label>
+                <input name='phonenumber' onChange={formik.handleChange} onBlur={formik.handleBlur} className='form-control' type="text" />  
+                {formik.touched.phonenumber && formik.errors.phonenumber? <small className='text-danger'>{formik.errors.phonenumber}</small> : "" }
             </div>
             <div className='m-3'>
-                <label htmlFor="password">Password</label>
-                <input name='password' onChange={formik.handleChange} className='form-control' type="password" />
-                <small className='text-danger'>{formik.errors.password}</small>
+                <label className='fw-medium fs-6' htmlFor="password">Password</label>
+                <input name='password' onChange={formik.handleChange} onBlur={formik.handleBlur} className='form-control' type="password" />
+                {formik.touched.password && formik.errors.password? <small className='text-danger'>{formik.errors.password}</small> : "" }
             </div>
-            <div className='m-3 text-center'>
-                already have an account ? <button onClick={login}>Login</button>
-                <button  className='btn btn-primary btn-large w-100'>Sign up</button>
+            <div className='mt-4 text-center'>
+               <p className='text-center fw-medium fs-6 mt-2'> already have an account ? <Link to='/login' className='text-decoration-none fs-6'>Login</Link></p>
+                <button  className='btn btn-primary btn-large w-100 py-2 pil'>Sign up</button>
                 <ToastContainer />
             </div>
             

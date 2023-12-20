@@ -6,8 +6,8 @@ import Center from './Center'
 const Dashboard = () => {
   return (
     <>
-      <div className='contain'>
-      <div className='container div'>
+      <div className='contain '>
+      <div className='div'>
         <Left/>
         <Center/>
         <Right/>

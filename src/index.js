@@ -9,20 +9,20 @@ import 'react-toastify/dist/ReactToastify.css';
 import {Navigate, Route, Routes} from 'react-router-dom'
 import Signup from './component/Signup';
 import {BrowserRouter} from 'react-router-dom';
-import Login from './component/Login';
-import Dashboard from './component/Dashboard';
 import Navbar from './component/Navbar';
+import { Provider } from 'react-redux';
+import Store from './Redux/Store';
+
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
+    <Provider store={Store}>
     <BrowserRouter>
-    <Routes>
-     <Route path='/' element={<Signup/>}/>
-     <Route path='/login' element={<Login/>}/>
-     <Route path='/app/:id' element={<App/>}/>
-    </Routes>
+      <App/>
     </BrowserRouter>
+    </Provider>
   </React.StrictMode>
 );
 

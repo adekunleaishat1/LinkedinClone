@@ -1,14 +1,23 @@
-import logo from './logo.svg';
+
 import './App.css';
-import Dashboard from './component/Dashboard';
-import Navbar from './component/Navbar';
+import { Route,Routes } from 'react-router-dom';
+import Dash from './component/Dash';
+import Signup from './component/Signup';
+import Login from './component/Login';
+import Preloader from './component/Preloader';
 
 
 function App() {
+
+
   return (
-    <div className="App">
-    <Navbar/>
-    <Dashboard/>
+    <div>
+    <Routes>
+      <Route path='/' element={<Signup/>}/>
+      <Route path='/login' element={<Login/>}/>
+      <Route path='/app' element={<Dash/>}/>
+      <Route path='/preload' element={<Preloader/>}/>
+    </Routes>
     </div>
   );
 }

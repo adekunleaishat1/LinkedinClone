@@ -7,51 +7,125 @@ import { HiPhotograph } from "react-icons/hi";
 import { CgCalendarDates } from "react-icons/cg";
 import { BiComment, BiLike, BiRepost, BiShare } from "react-icons/bi";
 import userEvent from "@testing-library/user-event";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { getUser} from "../Service/Oneuser"
+import { getpost } from "../Service/Post";
+import { getlike } from "../Service/Post";
+import { useDispatch, useSelector } from "react-redux";
+import { getcomment } from "../Service/Post";
+import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
+import Preloader from "./Preloader";
+
 
 const Center = () => {
-  const [user, setuser] = useState("");
+  // const [user, setuser] = useState("");
   const [imagefile, setimagefile] = useState("");
   const [inputValue, setInputValue] = useState("");
-  const [PostData, setPostData] = useState("");
-  const [isLiked, setIsLiked] = useState(false);
-  const [liked, setliked] = useState("");
-  const route = useParams();
-  const id = route.id;
-  console.log(id);
+  const [postId, setpostId] = useState("");
+  const [isLiked, setIsLiked] = useState("");
+  const [showing, setshowing] = useState(false);
+  const [buttIndex, setbuttIndex] = useState(null)
+  const [secondinp, setsecondinp] = useState("");
+  const dispatch = useDispatch()
 
+  const navigate = useNavigate()
+
+  let token = localStorage.token
+  
+
+  // const [liked, setliked] = useState(false);
+  const {isgetting, user, gettingerror} = useSelector((state)=> state.userslice)
+  console.log(user);
+
+  const {isgettingpost, allpost, isgettingerror} = useSelector((state)=> state.postslice)
+  console.log(allpost);
+
+  const {alllike, gettinglikeerror, isgettinglike} = useSelector((state) => state.likeslice)
+  console.log(alllike);
+
+  const {allcomment, gettingcommenterror, isgettingcomment} = useSelector((state)=> state.commentslice)
+  console.log(allcomment);
+
+  const load = () =>{
+    if (!user) {
+      return <Preloader/>
+    }else{
+      navigate("/app")
+    }
+  }
   useEffect(() => {
-    axios
-      .get(`http://localhost:3424/users/${id}`)
-      .then((res) => {
-        console.log(res);
-        setuser(res.data);
-        console.log(user);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
-  // useEffect(() => {
-  //  axios.get(`http://localhost:3424/post/${postId}/liked`)
-  //  .then((res)=>{
-  //   console.log(res);
-  //  }).catch((err)=>{
-  //   console.log(err);
-  //  })
-  // }, [])
+    load()
+  }, [])
+
+  
   
   useEffect(() => {
-    axios
-      .get("http://localhost:3424/Post")
-      .then((res) => {
-        console.log(res.data);
-        setPostData(res.data);
-        console.log(PostData);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    getpost(dispatch)
   }, []);
+
+  useEffect(() => {
+      getUser(dispatch)
+  }, [])
+
+  useEffect(() => {
+    getlike(dispatch) 
+    navigate("/app")
+   }, [dispatch, navigate]);
+
+   useEffect(() => {
+    getcomment(dispatch) 
+   }, []);
+
+   
+   useEffect(() => {
+ 
+   }, [user]);
+
+   useEffect(() => {
+     
+   }, [allpost])
+
+   useEffect(() => {
+     console.log(alllike);
+   }, [alllike])
+
+   useEffect(() => {
+    console.log(allcomment);
+  }, [allcomment])
+   
+
+   const handlelikechange = (post) =>{
+    if (post && post._id) {
+      const postliked = post._id
+      let isliked = alllike.find((like) => like.postid == postliked );
+      if (user && user._id) {
+        let likeuser = isliked?.like?.some((like)=> like.userliked == user._id)
+        console.log(likeuser);
+        setIsLiked((prevPostLikes) => ({
+          ...prevPostLikes,
+          [postliked]: `BiLike ${likeuser ? "liked" : "bi"}`,
+        }));
+      }
+    }
+   
+  }
+  useEffect(() => {
+    // Check if the user has liked the post and update the color
+    allpost.forEach((post) => {
+      handlelikechange(post);
+    });
+  }, [alllike, setIsLiked, user]);
+
+
+
+  
+  useEffect(() => {
+ 
+  }, [isLiked]);
+
+ 
 
   const fileInputRef = useRef(null);
   const chooseimage = () => {
@@ -82,108 +156,76 @@ const Center = () => {
   const makePost = () => {
     console.log(inputValue);
     console.log(imagefile);
-
-    const postData = {
-      text: inputValue,
-      image: imagefile,
-      user: user,
-    };
-
-    // Only send the POST request if the input value is not empty
-    if (inputValue.trim() !== "") {
-      axios
-        .post("http://localhost:3424/Post", postData)
-        .then((res) => {
-          console.log(res);
-          alert("Post successful");
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    const postdata = {
+      content: inputValue,
+      image: imagefile
     }
+    const token = localStorage.token
+    axios.post("http://localhost:5000/linkedin/makepost",postdata,{
+      headers:{
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+      },
+  }).then((res)=>{
+      toast.success(res.data.message)
+      navigate('/app')
+  }).catch((err)=>{
+      console.log(err);
+      toast.error(err.message)  
+  })
+  
   };
 
-  const like = (userId, postId, index) => {
-    console.log(index);
-    // const like = {};
-    const likedarray = PostData[index].liked;
-    console.log(likedarray);
-    const checkedIndex = likedarray.find((like) => like.user_id === user.id);
-    console.log(PostData[index]);
-    console.log(checkedIndex);
-
-    if (!checkedIndex) {
-      likedarray.push({ user_id: user.id });
-
-      const updatedData = [...PostData];
-      updatedData[index].isLiked = true;
-
-
-      axios
-        .put(
-          `http://localhost:3424/post/${postId}`,
-          {
-            text: PostData[index].text,
-            image: PostData[index].image,
-            user: PostData[index].user,
-            liked: PostData[index].liked,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        )
-        .then((res) => {
-          console.log("update successful");
-          console.log(res);
-          setliked(res.data);
-          localStorage.setItem("like", JSON.stringify(liked))
-          console.log(liked);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } else {
-      likedarray.splice(checkedIndex, 1);
-      console.log("meme");
-
-      const updatedData = [...PostData];
-      updatedData[index].isLiked = false;
-
-      axios
-      .put(
-        `http://localhost:3424/post/${postId}`,
-        {
-          text: PostData[index].text,
-          image: PostData[index].image,
-          user: PostData[index].user,
-          liked: likedarray,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((res) => {
-        console.log("Update successful");
-        console.log(res);
-        setliked(res.data);
-        // localStorage.setItem("like", liked)
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    }
-    axios.get(`http://localhost:3424/post/${postId}/`)
-    .then((res)=>{
-     console.log(res.data);
-     setIsLiked(res.data.liked)
-     console.log(isLiked);
+  const like = (post, i) => {
+      const postliked = post._id
+    axios.post("http://localhost:5000/linkedin/like",{postliked},{
+      headers:{
+        "Authorization":`bearer ${token}`,
+        "Content-Type":"application/json",
+        "Accept":"application/json"
+      }
+    }).then((res)=>{
+      console.log(res);
+      navigate('/app')
     }).catch((err)=>{
-     console.log(err);
+      console.log(err);
     })
+  };
+ 
+
+  const ontype = (i, e) =>{
+          setbuttIndex(i)
+         if (!secondinp == "") {
+            setshowing(true)
+         }else{
+           setshowing(false)
+         }
+  }
+  const touc = () =>{
+    
+  }
+  const postcomment=(i)=>{
+   
+    const postcomment = postId
+   
+    axios.post("http://localhost:5000/linkedin/comment",{postcomment,secondinp},{
+      headers:{
+        "Authorization":`bearer ${token}`,
+        "Content-Type":"application/json",
+        "Accept":"application/json"
+      }
+    }).then((res)=>{
+      console.log(res);
+      navigate('/app')
+    }).catch((err)=>{
+      console.log(err);
+    })
+   
+  }
+
+  const comment = (post) => {
+    setpostId(post._id == postId ? null : post._id)
   };
 
   return (
@@ -197,11 +239,11 @@ const Center = () => {
               alt=""
             />
           </div>
-          <h1 className="text-dark fs-5 mt-2 ">
-            Hi <span className="text-capitalize">{user.firstname}</span>, are
+          <h1 className="text-dark fs-5 mt-2 text-center ">
+            Hi <span className="text-capitalize">{user && user.firstname}</span>, are
             you looking for a job right now?
           </h1>
-          <h3 className="text-secondary fs-5 mt-2">
+          <h3 className="text-secondary fs-5 mt-2 text-center">
             Your response is only visible to you.
           </h3>
           <div className="d-flex justify-content-between align-items-center mt-2">
@@ -215,8 +257,8 @@ const Center = () => {
           <div className="d-flex justify-content-between align-items-center">
             <div className="imgdiv">
               <img
-                className="img-fluid border-rounded"
-                src={
+                className="img-fluid h-100 w-100 rounded-circle" 
+                src={user &&
                   user.profile_img ||
                   require("./images-removebg-preview (1).png")
                 }
@@ -243,20 +285,20 @@ const Center = () => {
                     <div className=" col-6 d-flex justify-content-between align-items-center">
                       <div className="imdiv">
                         <img
-                          className="img-fluid"
-                          src={
+                          className="img-fluid h-100 w-100"
+                          src={user &&
                             user.profile_img ||
                             require("./images-removebg-preview (1).png")
                           }
                           alt=""
                         />
                       </div>
-                      <div className="col-9">
+                      <div className="col-9 px-2 py-2">
                         <h1
-                          class="modal-title fs-5 text-capitalize"
+                          class="modal-title fs-6 text-capitalize"
                           id="exampleModalToggleLabel"
                         >
-                          {user.firstname} {user.lastname}
+                          {user && user.firstname} {user && user.lastname}
                         </h1>
                         <p className="text-secondary fs-6">Post to anyone</p>
                       </div>
@@ -308,14 +350,9 @@ const Center = () => {
                     >
                       post
                     </button>
+                    <ToastContainer/>
 
-                    <button
-                      class="btn btn-primary"
-                      data-bs-target="#exampleModalToggle2"
-                      data-bs-toggle="modal"
-                    >
-                      Open second modal
-                    </button>
+                    
                   </div>
                 </div>
               </div>
@@ -383,60 +420,146 @@ const Center = () => {
             </div>
           </div>
         </div>
-        <div className="postcontent w-100 bg-white p-3 ">
-          {PostData &&
-            PostData.map((post, i) => (
+        <div className="postcontent w-100 bg-white  p-3 mt-3">
+          {allpost &&
+            allpost.map((post, i) => (
               <>
-                <div key={i}>
-                  <div className=" col-5 d-flex justify-content-between align-items-start">
+                <div key={i} className="">
+                  <div className=" col-5 d-flex justify-content-between align-items-start  mt-3">
                     <div className="idiv">
                       <img
-                        className="img-fluid"
-                        src={post.user.profile_img}
+                        className="img-fluid w-100 h-100 rounded-circle"
+                        src={post.user.profile_img || require("./images-removebg-preview (1).png")}
                         alt=""
                       />
                     </div>
-                    <div className="w-75">
-                      <h1 className="text-capitalize fs-5">
+                    <div className="w-75 px-2 py-2">
+                      <h1 className="text-capitalize fs-6">
                         {post.user.firstname} {post.user.lastname}
                       </h1>
                     </div>
                   </div>
                   <div className="w-100 mt-3">
-                    <h1 className="fs-6 p-2 text-start">{post.text}</h1>
+                    <h1 className="fs-6 p-2 text-start">{post.content}</h1>
                     <div className="w-100">
                       <img className="img-fluid" src={post.image} alt="" />
                     </div>
                   </div>
-                  <div className="row p-3 border-top border-bottom mt-3">
-                    <div className="col-3">
-                      <button
-                        onClick={() => like(post.user.id, post.id, i)} 
-                        className= {!isLiked? "liked" : "bi"}
-                      >
-                        <BiLike />
-                      </button>
+                  <div className="d-flex justify-content-between align-items-center">
+                  <p>
+                    {(() => {
+                       let singlelike = alllike.find((like) => like.postid === post._id)
+                         let postLike = singlelike?.like?.length;
+                         console.log(postLike);
+                             return `${postLike} like`;
+                           })()}
+                     </p>
 
-                      <span>Likes</span>
+                     <p>
+                    {(() => {
+                       let singlelike = allcomment.find((comment) => comment.postid === post._id)
+                         let postcomment = singlelike?.comment?.length;
+                         
+                             return `${postcomment} comment`;
+                           })()}
+                     </p>
+                  </div>
+                 
+
+                  <div className="cont-com border-bottom">
+                    <div className=" border-top mt-3 cont-com2">
+                      <div
+                        onClick={() => {
+                          like(post , i);
+                          handlelikechange(post);
+                      }}
+                        className="iner-com"
+                      >
+                        <BiLike
+                          className={isLiked[post._id]}
+                        />
+                        <span>Likes</span>
+                      </div>
+                      <div onClick={() => comment(post)} className="iner-com">
+                        <BiComment className="bi" />
+                        <span>Comment</span>
+                      </div>
+                      <div className="iner-com sm-none">
+                        <BiRepost className="bi" />
+                        <span>Retweet</span>
+                      </div>
+                      <div className="iner-com">
+                        <BiShare className="bi" />
+                        <span>Post</span>
+                      </div>
                     </div>
-                    <div className="col-3">
-                      <button className="bi">
-                        <BiComment />
-                      </button>
-                      <span>Comment</span>
+                    {postId == post._id && <div><div className="d-flex justify-content-between align-item-center mt-3 com-disp">
+                      <div className="img-com">
+                        <img
+                          className="img-fluid h-100 w-100 rounded-circle"
+                          src={user &&
+                            user.profile_img ||
+                            require("./images-removebg-preview (1).png")
+                          }
+                          alt=""
+                        />
+                      </div>
+                     <div className="com-inp2">
+                     <div className="com-inp">
+                        <input
+                        onChange={(e)=>{
+                          setsecondinp(e.target.value)
+                          ontype(i, e)
+                        }}
+                        name={buttIndex}
+                        onBlur={touc}
+                          className=""
+                          placeholder="Add a comment..."
+                          type="text"
+                        />
+                        <div className="emoji2">
+                          <BsEmojiSmile />
+                        </div>
+                        <div className="emoji2">
+                          <HiPhotograph />
+                        </div>
+                      </div>
+                      {!secondinp == "" ?
+                        <div className="post-btn2">
+                          <button onClick={()=>postcomment(i)} className=" btn-small btn btn-primary mt-3">Post</button>
+                        </div> : null
+                      }
+                     </div>
+                    </div> 
+                    <div className="mt-4">
+                      {(() => {
+                       let singlelike = allcomment.find((comment) => comment.postid === post._id)
+                         let postcomment = singlelike?.comment;
+                         console.log(postcomment);
+                         if (postcomment && postcomment.length > 0) {
+                          return (
+                            <>
+                              {postcomment.map((el, i)=>(
+                                <div className="d-flex justify-content-between align-items-start mt-3" key={i}>
+                                  <div className="img-com">
+                                    <img className="img-fluid h-100 w-100 rounded-circle" src={el.commenteduserprofile} alt="" />
+                                  </div>
+                                   <div className="comment-div px-3 py-2">
+                                   <h1 className="fs-6">{el.commenteduserfirstname} {el.commenteduserlastname}</h1>
+                                   <p className="fs-6">{el.comment}</p>
+                                   </div>
+                                </div>
+                              ))
+
+                              }
+                            </>
+                          )
+                         }
+                             
+                           })()}
+                      </div>
                     </div>
-                    <div className="col-3">
-                      <button className="bi">
-                        <BiRepost />
-                      </button>
-                      <span>Retweet</span>
-                    </div>
-                    <div className="col-3">
-                      <button className="bi">
-                        <BiShare />
-                      </button>
-                      <span>Post</span>
-                    </div>
+                    }
                   </div>
                 </div>
               </>

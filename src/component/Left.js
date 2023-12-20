@@ -5,29 +5,41 @@ import { HiOutlinePhotograph} from "react-icons/hi";
 import {BsFillCameraFill  } from "react-icons/bs";
 import {BiBookmark} from "react-icons/bi"
 import {RiEdit2Fill} from "react-icons/ri";
-
+import { useSelector, useDispatch } from "react-redux";
+import { getUser } from "../Service/Oneuser";
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from "react-router-dom";
 
 const Left = () => {
-  const [user, setuser] = useState("");
-  const [imageData, setimageData] = useState(user.profile_img || './images-removebg-preview (1).png')
+  const {isgetting, user, gettingerror} = useSelector((state)=> state.userslice)
+
+  const token = localStorage.token
+  const dispatch = useDispatch()
+  const [imageData, setimageData] = useState('./images-removebg-preview (1).png')
+  const [image, setimage] = useState("")
+  const navigate = useNavigate()
   // const [imageSrc, setImageSrc] = useState(user.profile_img || './images-removebg-preview (1).png');
 
-  const route = useParams();
-  const id = route.id;
-  console.log(id);
+
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:3424/users/${id}`)
-      .then((res) => {
-        console.log(res);
-        setuser(res.data);
-        console.log(user);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+    getUser(dispatch)
+  }, [])
+
+  useEffect(() => {
+    console.log(image);
+  }, [image])
+
+  useEffect(() => {
+    console.log(user);
+  }, [user])
+
+  useEffect(() => {
+    
+  }, [user])
+  
+  
 
   const fileInputRef = useRef(null);
   const handleFileChange = (event) => {
@@ -38,46 +50,39 @@ const Left = () => {
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        const imageData = e.target.result;
-        // console.log(imageData);
-        setimageData(imageData)
-        console.log(imageData);
+        setimage(e.target.result)
       };
 
       reader.readAsDataURL(selectedFile);
     }
   };
 
+  const close = () =>{
+    setimage(null)
+  }
+
+  const upload = () =>{
+   console.log(image);
+   axios.post("http://localhost:5000/linkedin/upload",{image},{
+    headers:{
+      "Authorization": `bearer ${token}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    }
+   }).then((res)=>{
+    toast.success(res.data.message)
+    navigate('/app')
+   }).catch((err)=>{
+    toast.error(err.message)
+   })
+  }
+
 
    const uploadImage= () =>{
     fileInputRef.current.click();
    }
-   const postImage= () =>{
-    console.log(imageData);
-    
 
-    axios.put(`http://localhost:3424/users/${id}`, {
-      "firstname": user.firstname,
-      "lastname": user.lastname,
-      "email": user.email,
-      "phonenumber": user.phonenumber,
-      "password": user.password,
-      "profile_img": imageData,
-      "id": user.id
-}, {
-  headers: {
-    "Content-Type": "application/json"
-  }
-})
-  .then((res) => {
-    console.log("update successful");
-    console.log(res); 
-  })
-  .catch((err) => {
-    console.log(err);
-   });
 
-  }
 
   return (
     <>
@@ -93,8 +98,8 @@ const Left = () => {
               data-bs-target="#staticBackdrop"
             >
               <img
-                className="img-fluid"
-                src={user.profile_img ||  require("./images-removebg-preview (1).png")}
+                className="img-fluid w-100 h-100"
+                src={user ? user.profile_img : require("./images-removebg-preview (1).png")}
                 alt=""
               />
             </div>
@@ -118,6 +123,7 @@ const Left = () => {
                       class="btn-close"
                       data-bs-dismiss="modal"
                       aria-label="Close"
+                      onClick={close}
                     ></button>
                   </div>
                   <div class="modal-body">
@@ -125,7 +131,7 @@ const Left = () => {
                       <input className="in" type="file" ref={fileInputRef} onChange={handleFileChange} />
                        <img
                 className=""
-                src={imageData || require("./images-removebg-preview (1).png")}
+                src={image || (user && user.profile_img)}
                 alt=""
               /></div>
                   </div>
@@ -148,20 +154,22 @@ const Left = () => {
                       type="button"
                       class="btn btn-secondary"
                       data-bs-dismiss="modal"
+                      onClick={close}
                     >
                       Close
                     </button>
-                    <button onClick={postImage} type="button" class="btn btn-primary">
+                    <button onClick={upload} type="button" class="btn btn-primary">
                       Save
                     </button>
+                    <ToastContainer/>
                   </div>
                 </div>
               </div>
             </div>
           </div>
            <div className="ade">
-           <h1 className="fs-6 text-capitalize">
-            {user.firstname} {user.lastname}
+           <h1 className="fs-6 text-capitalize text-center">
+            {user && user.firstname} {user && user.lastname}
           </h1>
           <p className="text-secondary">Frontend Developer</p>
            </div>
