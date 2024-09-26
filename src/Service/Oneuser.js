@@ -6,10 +6,9 @@ const token = localStorage.token
 
 
 export const getUser = (dispatch) =>{
-
     try {
         dispatch(Gettinguser())
-      axios.get("http://localhost:5000/linkedin/getuser",{
+      axios.get(`${process.env.REACT_APP_API_ENDPOINT}/linkedin/getuser`,{
         headers:{
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -18,11 +17,13 @@ export const getUser = (dispatch) =>{
       }) .then((res)=>{
         dispatch(Gettingsuccessful(res.data.user))
       }).catch((err)=>{
-        console.log(err);
+        // console.log(err);
         dispatch(Gettingfailed(err.message))
       }) 
     } catch (error) {
-         console.log(error);
-    }
+        //  console.log(error);
+         dispatch(Gettingfailed("An error occurred while fetching user data."));
+        }
+    
 }
 

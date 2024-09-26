@@ -12,15 +12,13 @@ const Dash = () => {
     const navigate = useNavigate()
     let token = localStorage.token
    useEffect(() => {
-    axios.get("http://localhost:5000/linkedin/dashboard",{
+    axios.get(`${process.env.REACT_APP_API_ENDPOINT}/linkedin/dashboard`,{
         headers:{
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
     }).then((res)=>{ 
-   
-        console.log(res);
         navigate('/app')
         // if (!res.data.status) {
         //     navigate("/login")
@@ -30,25 +28,6 @@ const Dash = () => {
         localStorage.removeItem("token")
         navigate("/login")
     })
-   }, [])
-
-   useEffect(() => {
-    axios.get("http://localhost:5000/linkedin/getlike",{
-      headers:{
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-      }
-  }).then((res)=>{ 
- 
-      console.log(res.data);
-      navigate('/app')
-      // if (!res.data.status) {
-      //     navigate("/login")
-      // }
-  }).catch((err)=>{
-      console.log(err);
-  })
    }, [])
    
    

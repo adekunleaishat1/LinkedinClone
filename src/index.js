@@ -11,17 +11,20 @@ import Signup from './component/Signup';
 import {BrowserRouter} from 'react-router-dom';
 import Navbar from './component/Navbar';
 import { Provider } from 'react-redux';
-import Store from './Redux/Store';
+import {persistor, store} from './Redux/Store';
+import { PersistGate } from 'redux-persist/integration/react';
 
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Provider store={Store}>
+    <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
     <BrowserRouter>
       <App/>
     </BrowserRouter>
+    </PersistGate>
     </Provider>
   </React.StrictMode>
 );

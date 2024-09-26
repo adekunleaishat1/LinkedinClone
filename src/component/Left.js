@@ -12,7 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from "react-router-dom";
 
 const Left = () => {
-  const {isgetting, user, gettingerror} = useSelector((state)=> state.userslice)
+  const { user, gettingerror} = useSelector((state)=> state.userslice)
 
   const token = localStorage.token
   const dispatch = useDispatch()
@@ -25,19 +25,17 @@ const Left = () => {
 
   useEffect(() => {
     getUser(dispatch)
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
-    console.log(image);
+    
   }, [image])
-
-  useEffect(() => {
-    console.log(user);
-  }, [user])
 
   useEffect(() => {
     
   }, [user])
+
+ 
   
   
 
@@ -63,7 +61,7 @@ const Left = () => {
 
   const upload = () =>{
    console.log(image);
-   axios.post("http://localhost:5000/linkedin/upload",{image},{
+   axios.post(`${process.env.REACT_APP_API_ENDPOINT}/linkedin/upload`,{image},{
     headers:{
       "Authorization": `bearer ${token}`,
       "Content-Type": "application/json",

@@ -14,6 +14,7 @@ import { getpost } from "../Service/Post";
 import { getlike } from "../Service/Post";
 import { useDispatch, useSelector } from "react-redux";
 import { getcomment } from "../Service/Post";
+import { getnotification } from "../Service/Post";
 import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import Preloader from "./Preloader";
@@ -35,18 +36,19 @@ const Center = () => {
   let token = localStorage.token
   
 
-  // const [liked, setliked] = useState(false);
   const {isgetting, user, gettingerror} = useSelector((state)=> state.userslice)
-  console.log(user);
+
 
   const {isgettingpost, allpost, isgettingerror} = useSelector((state)=> state.postslice)
-  console.log(allpost);
+
 
   const {alllike, gettinglikeerror, isgettinglike} = useSelector((state) => state.likeslice)
-  console.log(alllike);
 
   const {allcomment, gettingcommenterror, isgettingcomment} = useSelector((state)=> state.commentslice)
-  console.log(allcomment);
+
+  const {allnotification, notificationerror, isgettingnotification} = useSelector((state)=> state.notificationslice)
+
+  
 
   const load = () =>{
     if (!user) {
@@ -59,42 +61,54 @@ const Center = () => {
     load()
   }, [])
 
+  useEffect(() => {
+ 
+  }, [user]);
+
+  useEffect(() => {
+    
+  }, [allpost])
+
+  useEffect(() => {
+    
+  }, [alllike])
+
+  useEffect(() => {
+   
+ }, [allcomment])
+
+ useEffect(() => {
+   
+ }, [allnotification])
   
   
   useEffect(() => {
     getpost(dispatch)
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
       getUser(dispatch)
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
-    getlike(dispatch) 
-    navigate("/app")
-   }, [dispatch, navigate]);
+    try {
+      getlike(dispatch);
+      navigate("/app");
+    } catch (error) {
+      console.error("Error in useEffect:", error);
+    }
+   }, [dispatch, alllike]);
 
    useEffect(() => {
     getcomment(dispatch) 
-   }, []);
+   }, [dispatch, allcomment]);
+
+   useEffect(() => {
+    getnotification(dispatch) 
+   }, [dispatch]);
 
    
-   useEffect(() => {
- 
-   }, [user]);
-
-   useEffect(() => {
-     
-   }, [allpost])
-
-   useEffect(() => {
-     console.log(alllike);
-   }, [alllike])
-
-   useEffect(() => {
-    console.log(allcomment);
-  }, [allcomment])
-   
+  
 
    const handlelikechange = (post) =>{
     if (post && post._id) {
@@ -102,7 +116,6 @@ const Center = () => {
       let isliked = alllike.find((like) => like.postid == postliked );
       if (user && user._id) {
         let likeuser = isliked?.like?.some((like)=> like.userliked == user._id)
-        console.log(likeuser);
         setIsLiked((prevPostLikes) => ({
           ...prevPostLikes,
           [postliked]: `BiLike ${likeuser ? "liked" : "bi"}`,
@@ -121,6 +134,7 @@ const Center = () => {
 
 
   
+ 
   useEffect(() => {
  
   }, [isLiked]);
@@ -161,7 +175,7 @@ const Center = () => {
       image: imagefile
     }
     const token = localStorage.token
-    axios.post("http://localhost:5000/linkedin/makepost",postdata,{
+    axios.post(`${process.env.REACT_APP_API_ENDPOINT}/linkedin/makepost`,postdata,{
       headers:{
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -179,14 +193,13 @@ const Center = () => {
 
   const like = (post, i) => {
       const postliked = post._id
-    axios.post("http://localhost:5000/linkedin/like",{postliked},{
+    axios.post(`${process.env.REACT_APP_API_ENDPOINT}/linkedin/like`,{postliked},{
       headers:{
         "Authorization":`bearer ${token}`,
         "Content-Type":"application/json",
         "Accept":"application/json"
       }
     }).then((res)=>{
-      console.log(res);
       navigate('/app')
     }).catch((err)=>{
       console.log(err);
@@ -209,7 +222,7 @@ const Center = () => {
    
     const postcomment = postId
    
-    axios.post("http://localhost:5000/linkedin/comment",{postcomment,secondinp},{
+    axios.post(`${process.env.REACT_APP_API_ENDPOINT}/linkedin/comment`,{postcomment,secondinp},{
       headers:{
         "Authorization":`bearer ${token}`,
         "Content-Type":"application/json",
@@ -450,7 +463,6 @@ const Center = () => {
                     {(() => {
                        let singlelike = alllike.find((like) => like.postid === post._id)
                          let postLike = singlelike?.like?.length;
-                         console.log(postLike);
                              return `${postLike} like`;
                            })()}
                      </p>
@@ -535,7 +547,6 @@ const Center = () => {
                       {(() => {
                        let singlelike = allcomment.find((comment) => comment.postid === post._id)
                          let postcomment = singlelike?.comment;
-                         console.log(postcomment);
                          if (postcomment && postcomment.length > 0) {
                           return (
                             <>

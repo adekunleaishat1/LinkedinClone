@@ -7,7 +7,7 @@ const Dashboard = () => {
   return (
     <>
       <div className='contain '>
-      <div className='div'>
+      <div className='container div'>
         <Left/>
         <Center/>
         <Right/>
